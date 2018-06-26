@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+
+const program = require('caporal')
+const compareVersions = require('compare-versions')
+const colors = require('colors') // eslint-disable-line no-unused-vars
+
+const {
+  version: CLI_VERSION,
+  engines: { node: currentVersion }
+} = require('../package.json')
+
+const commands = require('../commands')
+
+const clientVersion = process.version.substring(1)
+
+if (compareVersions(clientVersion, currentVersion) !== 0) {
+  console.error(`Wrong node version, required version: ${currentVersion}, your version: ${clientVersion}`.red)
+  process.exit(1)
+}
+
+/**
+ * Kinesis Broker CLI
+ *
+ * @author kinesis
+ */
+program
+  .logger(console)
+  .version(CLI_VERSION)
+  .description(`☍ Kinesis Broker CLI - http://kinesis.network`)
+
+/**
+ * Initialize Commands
+ *
+ * We do this initialization to provide closures to each of our commands. Although
+ * this may use a little more memory, it allows us to couple arguments/handlers in
+ * the same file AND prevents us from cluttering the global scope when using caporal
+ *
+ * Please use `kcli --help` to see available commands
+ */
+Object.keys(commands).forEach((key) => commands[key](program))
+
+program.parse(process.argv)
